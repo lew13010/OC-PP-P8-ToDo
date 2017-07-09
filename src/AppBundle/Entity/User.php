@@ -39,6 +39,12 @@ class User implements UserInterface
      */
     private $email;
 
+    /**
+     * @ORM\Column(type="json_array")
+     * @Assert\NotBlank(message="Vous devez saisir un role d'utilisateur.")
+     */
+    private $roles = [];
+
     public function getId()
     {
         return $this->id;
@@ -79,12 +85,34 @@ class User implements UserInterface
         $this->email = $email;
     }
 
+    public function setRoles(array $roles)
+    {
+        foreach ($roles as $role) {
+            $this->roles[] = $role;
+        }
+
+        return $this;
+    }
+
     public function getRoles()
     {
-        return array('ROLE_USER');
+
+        return $this->roles;
+    }
+
+    public function removeRoles()
+    {
+        unset($this->roles);
+        $this->roles = array();
+
     }
 
     public function eraseCredentials()
     {
+    }
+
+    public function __toString()
+    {
+        return $this->username;
     }
 }
