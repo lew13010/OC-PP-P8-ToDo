@@ -32,7 +32,7 @@ class TaskController extends Controller
 
         $form->handleRequest($request);
 
-        if ($form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $em = $this->getDoctrine()->getManager();
             $task->setAuthor($this->getUser());
 
@@ -56,7 +56,7 @@ class TaskController extends Controller
 
         $form->handleRequest($request);
 
-        if ($form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
             $this->addFlash('success', 'La tâche a bien été modifiée.');
@@ -88,11 +88,23 @@ class TaskController extends Controller
      */
     public function deleteTaskAction(Task $task)
     {
-        $em = $this->getDoctrine()->getManager();
-        $em->remove($task);
-        $em->flush();
+        $permission = false;
+        $user = $this->getUser();
 
-        $this->addFlash('success', 'La tâche a bien été supprimée.');
+        if($task->getAuthor() === 'Anonyme' && in_array('ROLE_ADMIN', $user->getRoles())){
+            $permission = true;
+        }
+        if ($user == $task->getAuthor()) {
+            $permission = true;
+        }
+        if ($permission){
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($task);
+            $em->flush();
+            $this->addFlash('success', 'La tâche a bien été supprimée.');
+        }else{
+            $this->addFlash('error', 'Vous n\'avez pas la permission de supprimer cette tache.');
+        }
 
         return $this->redirectToRoute('task_list');
     }
