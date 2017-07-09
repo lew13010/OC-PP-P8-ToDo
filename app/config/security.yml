@@ -16,8 +16,8 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        test:
-            http_basic: ~
+#        test:
+#            http_basic: ~
 
         main:
             anonymous: ~
