@@ -54,8 +54,11 @@ class UserController extends Controller
         $form->handleRequest($request);
 
         if ($form->isValid()) {
+            $role = $request->request->get('user')['roles'];
             $password = $this->get('security.password_encoder')->encodePassword($user, $user->getPassword());
             $user->setPassword($password);
+            $user->removeRoles();
+            $user->setRoles($role);
 
             $this->getDoctrine()->getManager()->flush();
 
