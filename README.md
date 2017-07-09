@@ -33,13 +33,26 @@ $ php bin/console doctrine:schema:update --force
 TEST
 ====
 
-you can install phpunit for unit and functionnal tests
+Create 2 users for all tests :
+ - one user with username "test" and password "test" with role "ROLE_USER"
+ - one user with username "admin" and password "admin" with role "ROLE_ADMIN"
+ 
+For install phpunit for units and functionnals tests : 
+
+Download phpunit.phar in root dir.
 
 in security.yml add firewalls before main :
 ```
 test:
     http_basic: ~
 ```
+
+
+run PHPUnit
+```
+$ php phpunit.phar
+```
+
 
 USE
 ===
