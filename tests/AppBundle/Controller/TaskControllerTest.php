@@ -21,21 +21,28 @@ class TaskControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode());
     }
 
-    public function testCreate()
+
+    public function testCreateTask()
     {
+        // Creation d'un client
         $client = static::createClient(array(), array(
             'PHP_AUTH_USER' => 'admin',
             'PHP_AUTH_PW'   => 'admin',
         ));
-        $crawler = $client->request('GET', '/tasks/create');
+        $crawler = $client->request('GET', '/tasks/create'); // Requete creation d'une tache
 
-        $form = $crawler->selectButton('Ajouter')->form();
+        $form = $crawler->selectButton('Ajouter')->form(); // Remplissage des champs du formulaire
         $form['task[title]'] = 'TITRE';
         $form['task[content]'] = 'contenu';
 
-        $client->submit($form);
+        $client->submit($form); // Soumission du formulaire
 
-        $this->assertTrue($client->getResponse()->isRedirect('/tasks'));
+        $this->assertTrue($client->getResponse()->isRedirect('/tasks')); // Vérification de la redirection sur la page de la liste des taches après soumission du formulaire
+
+        $crawler = $client->request('GET', '/tasks');
+        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > span')->getNode(0)->nodeValue; // On recupere dans le DOM l'auteur de la derniere tache ajouté
+
+        $this->assertEquals('Auteur : admin', $filter); // On test que l'auteur est bien le client qui l'a enregistrer
     }
 
     public function testEditTask()
@@ -56,6 +63,11 @@ class TaskControllerTest extends WebTestCase
         $client->submit($form);
 
         $this->assertTrue($client->getResponse()->isRedirect('/tasks'));
+
+        $crawler = $client->request('GET', '/tasks');
+        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > p')->getNode(0)->nodeValue; // On recupere dans le DOM l'auteur de la derniere tache modifié
+
+        $this->assertEquals('contenu modifier', $filter); // On test que le texte a bien été modifier
     }
 
     public function testToggleTask()

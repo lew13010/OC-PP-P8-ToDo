@@ -70,6 +70,11 @@ class UserControllerTest extends WebTestCase
         $client->submit($form);
 
         $this->assertTrue($client->getResponse()->isRedirect('/tasks'));
+
+        $crawler = $client->request('GET', '/users');
+        $filter = $crawler->filter('.table > tbody > tr:last-child > td')->getNode(0)->nodeValue; // On recupere dans le DOM le nom d'utilisateur du dernier utilisateur ajouté
+
+        $this->assertEquals('phpunit', $filter); // On test que l'utilisateur a bien été ajouté
     }
 
     public function testEditUser()
@@ -93,5 +98,21 @@ class UserControllerTest extends WebTestCase
         $client->submit($form);
 
         $this->assertTrue($client->getResponse()->isRedirect('/users'));
+
+        $crawler = $client->request('GET', '/users');
+        $filter = $crawler->filter('.table > tbody > tr:last-child > td')->getNode(0)->nodeValue; // On recupere dans le DOM le nom d'utilisateur du dernier utilisateur modifié
+
+        $this->assertEquals('modif', $filter); // On test que le nom d'utilisateur a bien été modifier
+    }
+
+    public function testConnectWithEditUser()
+    {
+        $client = static::createClient(array(), array(
+            'PHP_AUTH_USER' => 'modif',
+            'PHP_AUTH_PW'   => 'modif',
+        ));
+        $client->request('GET', '/');
+
+        $this->assertEquals(Response::HTTP_OK, $client->getResponse()->getStatusCode());
     }
 }
