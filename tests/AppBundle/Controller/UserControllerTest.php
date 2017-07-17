@@ -10,9 +10,12 @@ namespace Tests\AppBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Response;
+use Tests\AppBundle\HelperTrait;
 
 class UserControllerTest extends WebTestCase
 {
+    use HelperTrait;
+
     public function testListWithoutLogin()
     {
         $client = static::createClient();
@@ -61,10 +64,10 @@ class UserControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/users/create');
 
         $form = $crawler->selectButton('Ajouter')->form();
-        $form['user[username]'] = 'phpunit';
-        $form['user[password][first]'] = 'phpunit';
-        $form['user[password][second]'] = 'phpunit';
-        $form['user[email]'] = 'phpunit@phpunit.fr';
+        $form['user[username]'] = self::getUniqId();
+        $form['user[password][first]'] = self::getUniqId();
+        $form['user[password][second]'] = self::getUniqId();
+        $form['user[email]'] = self::getUniqId().'@test.fr';
         $form['user[roles]'] = 'ROLE_USER';
 
         $client->submit($form);
@@ -74,7 +77,7 @@ class UserControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/users');
         $filter = $crawler->filter('.table > tbody > tr:last-child > td')->getNode(0)->nodeValue; // On recupere dans le DOM le nom d'utilisateur du dernier utilisateur ajouté
 
-        $this->assertEquals('phpunit', $filter); // On test que l'utilisateur a bien été ajouté
+        $this->assertEquals(self::getUniqId(), $filter); // On test que l'utilisateur a bien été ajouté
     }
 
     public function testEditUser()
@@ -84,15 +87,15 @@ class UserControllerTest extends WebTestCase
             'PHP_AUTH_PW'   => 'admin',
         ));
         $em = $client->getContainer()->get('doctrine')->getManager();
-        $repo = $em->getRepository('AppBundle:User')->findOneBy(array(),array('id' => 'desc'));
+        $repo = $em->getRepository('AppBundle:User')->findOneBy(array('username' => self::getUniqId()));
 
-        $crawler = $client->request('GET', '/users/'.$repo->getId().'/edit');
+        $crawler = $client->request('GET', '/users/' . $repo->getId() . '/edit');
 
         $form = $crawler->selectButton('Modifier')->form();
-        $form['user[username]'] = 'modif';
-        $form['user[password][first]'] = 'modif';
-        $form['user[password][second]'] = 'modif';
-        $form['user[email]'] = 'modif@modif.fr';
+        $form['user[username]'] = self::getUniqIdBis();
+        $form['user[password][first]'] = self::getUniqIdBis();
+        $form['user[password][second]'] = self::getUniqIdBis();
+        $form['user[email]'] = self::getUniqIdBis() . '@modif.fr';
         $form['user[roles]'] = 'ROLE_ADMIN';
 
         $client->submit($form);
@@ -102,14 +105,14 @@ class UserControllerTest extends WebTestCase
         $crawler = $client->request('GET', '/users');
         $filter = $crawler->filter('.table > tbody > tr:last-child > td')->getNode(0)->nodeValue; // On recupere dans le DOM le nom d'utilisateur du dernier utilisateur modifié
 
-        $this->assertEquals('modif', $filter); // On test que le nom d'utilisateur a bien été modifier
+        $this->assertEquals(self::getUniqIdBis(), $filter); // On test que le nom d'utilisateur a bien été modifier
     }
 
     public function testConnectWithEditUser()
     {
         $client = static::createClient(array(), array(
-            'PHP_AUTH_USER' => 'modif',
-            'PHP_AUTH_PW'   => 'modif',
+            'PHP_AUTH_USER' => self::getUniqIdBis(),
+            'PHP_AUTH_PW'   => self::getUniqIdBis(),
         ));
         $client->request('GET', '/');
 

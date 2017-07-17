@@ -21,7 +21,6 @@ class TaskControllerTest extends WebTestCase
         $this->assertEquals(Response::HTTP_UNAUTHORIZED, $client->getResponse()->getStatusCode());
     }
 
-
     public function testCreateTask()
     {
         // Creation d'un client
@@ -65,7 +64,7 @@ class TaskControllerTest extends WebTestCase
         $this->assertTrue($client->getResponse()->isRedirect('/tasks'));
 
         $crawler = $client->request('GET', '/tasks');
-        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > p')->getNode(0)->nodeValue; // On recupere dans le DOM l'auteur de la derniere tache modifié
+        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > p')->getNode(0)->nodeValue; // On recupere dans le DOM le contenu de la derniere tache modifié
 
         $this->assertEquals('contenu modifier', $filter); // On test que le texte a bien été modifier
     }
