@@ -50,11 +50,14 @@ class ScenariosTest extends WebTestCase
         $form['task[content]'] = 'contenu';
         $client->submit($form);
         $this->assertTrue($client->getResponse()->isRedirect('/tasks'));
-
-        // Recuperation de l'utilisateur en BDD
-        $user = $em->getRepository('AppBundle:User')->findOneBy(array('username' => self::getUniqId()));
+        $crawler = $client->request('GET', '/tasks');
+        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > p')->getNode(0)->nodeValue;
+        $this->assertEquals('contenu', $filter);
+        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > span')->getNode(0)->nodeValue;
+        $this->assertEquals('Auteur : '.self::getUniqId(), $filter);
 
         // Modification de l'utilisateur
+        $user = $em->getRepository('AppBundle:User')->findOneBy(array('username' => self::getUniqId())); // Recuperation de l'utilisateur en BDD
         $crawler = $client->request('GET', '/users/'.$user->getId().'/edit');
         $form = $crawler->selectButton('Modifier')->form();
         $form['user[username]'] = self::getUniqIdBis();
@@ -71,16 +74,22 @@ class ScenariosTest extends WebTestCase
             'PHP_AUTH_PW'   => self::getUniqIdBis(),
         ));
 
-        // Reccuperation de la tache
-        $task = $em->getRepository('AppBundle:Task')->findOneBy(array('title' => 'Tache Scenario'));
+        // Verification changement nom de proprietaire de la tache
+        $crawler = $client->request('GET', '/tasks');
+        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > span')->getNode(0)->nodeValue;
+        $this->assertEquals('Auteur : '.self::getUniqIdBis(), $filter);
 
         // Modification d'une tache
+        $task = $em->getRepository('AppBundle:Task')->findOneBy(array('title' => 'Tache Scenario')); // Reccuperation de la tache
         $crawler = $client->request('GET', '/tasks/'.$task->getId().'/edit');
         $form = $crawler->selectButton('Modifier')->form();
         $form['task[title]'] = 'TITRE modifier';
         $form['task[content]'] = 'contenu modifier';
         $client->submit($form);
         $this->assertTrue($client->getResponse()->isRedirect('/tasks'));
+        $crawler = $client->request('GET', '/tasks');
+        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > span')->getNode(0)->nodeValue;
+        $this->assertEquals('Auteur : '.self::getUniqIdBis(), $filter);
 
         // Supression de la tache modifié
         $task = $em->getRepository('AppBundle:Task')->findOneBy(array('title' => 'TITRE modifier'));
