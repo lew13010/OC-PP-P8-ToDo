@@ -91,8 +91,32 @@ class ScenariosTest extends WebTestCase
         $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > span')->getNode(0)->nodeValue;
         $this->assertEquals('Auteur : '.self::getUniqIdBis(), $filter);
 
+        // Creation d'un client ADMIN
+        $client = static::createClient(array(), array(
+            'PHP_AUTH_USER' => 'admin',
+            'PHP_AUTH_PW'   => 'admin',
+        ));
+
+        // Modification de la tache par 'admin'
+        $task = $em->getRepository('AppBundle:Task')->findOneBy(array('title' => 'TITRE modifier')); // Reccuperation de la tache
+        $crawler = $client->request('GET', '/tasks/'.$task->getId().'/edit');
+        $form = $crawler->selectButton('Modifier')->form();
+        $form['task[title]'] = 'Modification';
+        $form['task[content]'] = 'contenu modifier par admin';
+        $client->submit($form);
+        $this->assertTrue($client->getResponse()->isRedirect('/tasks'));
+        $crawler = $client->request('GET', '/tasks');
+        $filter = $crawler->filter('.col-sm-4:last-child > .thumbnail > .caption > span')->getNode(0)->nodeValue;
+        $this->assertEquals('Auteur : '.self::getUniqIdBis(), $filter);
+
+        // Changement de client avec les identifiants modifiés
+        $client = static::createClient(array(), array(
+            'PHP_AUTH_USER' => self::getUniqIdBis(),
+            'PHP_AUTH_PW'   => self::getUniqIdBis(),
+        ));
+
         // Supression de la tache modifié
-        $task = $em->getRepository('AppBundle:Task')->findOneBy(array('title' => 'TITRE modifier'));
+        $task = $em->getRepository('AppBundle:Task')->findOneBy(array('title' => 'Modification'));
         $client->request('POST', '/tasks/'.$task->getId().'/delete');
         $this->assertTrue($client->getResponse()->isRedirect('/tasks'));
 
